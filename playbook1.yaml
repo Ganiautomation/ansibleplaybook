@@ -1,0 +1,68 @@
+---
+- name: Provision, Map, and Snapshot PowerStore Storage
+  hosts: Dpowerstore
+  connection: local
+  gather_facts: no
+ #vars:
+   #remote_system_address: 192.168.2.150
+   #when: inventory_hostname == 192.168.2.10
+
+  tasks:
+    - name: Create volume group without protection policy
+      dellemc.powerstore.volumegroup:
+        array_ip: "{{ inventory_hostname }}"
+        validate_certs: false
+        user: "{{user}}"
+        password: "{{password}}"
+        vg_name: "{{vg_name}}"
+        description: "This volume group is for ansible"
+        state: "present"
+
+    - block:
+
+        - name: Create powerstore volume
+          dellemc.powerstore.volume:
+            array_ip: "{{ inventory_hostname }}"
+            validate_certs: false
+            user: "{{user}}"
+            password: "{{password}}"
+            vol_name: "{{vol_name}}"
+            size: 5
+            cap_unit: 'GB'
+            state: 'present'
+            description: 'New Powerstore Volume'
+            performance_policy: 'low'
+            vg_name: "{{vg_name}}"
+
+      rescue:
+        - name: Show error
+          debug:
+            msg: "Volume created but ignore the error"
+
+      always:
+
+        - name: Create a volume snapshot on PowerStore
+          dellemc.powerstore.snapshot:
+            array_ip: "{{ inventory_hostname }}"
+            validate_certs: false
+            user: "{{user}}"
+            password: "{{password}}"
+            snapshot_name: "{{snapshot_name}}"
+            volume: "{{vol_name}}"
+            description: 'New snapshot'
+            desired_retention: "{{desired_retention}}"
+            retention_unit: "{{retention_unit}}"
+            state: 'present'
+
+    #- name: Create new replication rule
+      #dellemc.powerstore.replicationrule:
+        #array_ip: "{{inventory_hostname}}"
+        #validate_certs: false
+        #user: "{{user}}"
+        #password: "{{password}}"
+        #replication_rule_name: "ansible_replication_rule_1"
+        #rpo: "One_Hour"
+        #alert_threshold: "15"
+        #remote_system: "td-coe-powerstore1"
+        #remote_system_address: "192.168.2.10"
+        #state: "present"
