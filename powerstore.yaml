@@ -1,6 +1,6 @@
 ---
 - name: Provision, Map, and Snapshot PowerStore Storage
-  hosts: Dpowerstore
+  hosts: Dellpowerstore
   connection: local
   gather_facts: no
 
