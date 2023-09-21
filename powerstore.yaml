@@ -1,0 +1,48 @@
+---
+- name: Provision, Map, and Snapshot PowerStore Storage
+  hosts: Dpowerstore
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: Create host with iSCSI initiator and its details
+      dellemc.powerstore.host:
+        array_ip: "{{ inventory_hostname }}"
+        validate_certs: false
+        user: "{{user}}"
+        password: "{{password}}"
+        host_name: "td12"
+        os_type: 'Windows'
+        detailed_initiators:
+          - port_name: 'iqn.1991-05.com.microsoft:coelab-12'
+            port_type: 'iSCSI'
+        state: 'present'
+        initiator_state: 'present-in-host'
+
+
+
+    - name: Create powerstore volume
+      dellemc.powerstore.volume:
+        array_ip: "{{ inventory_hostname }}"
+        validate_certs: false
+        user: "{{user}}"
+        password: "{{password}}"
+        vol_name: "{{vol_name}}"
+        size: 5
+        cap_unit: 'GB'
+        state: 'present'
+        description: 'New Powerstore Volume'
+        performance_policy: 'low'
+
+    - name: Create powerstore snampshot
+      dellemc.powerstore.snapshot:
+        array_ip: "{{ inventory_hostname }}"
+        validate_certs: false
+        user: "{{user}}"
+        password: "{{password}}"
+        snapshot_name: "{{snapshot_name}}"
+        volume: "{{vol_name}}"
+        description: 'New snapshot'
+        desired_retention: "{{desired_retention}}"
+        retention_unit: "{{retention_unit}}"
+        state: 'present'
